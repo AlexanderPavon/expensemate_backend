@@ -16,6 +16,7 @@
 
 ## 📁 Estructura del proyecto
 
+```
 ├── controllers         # Lógica de control de endpoints
 ├── services            # Lógica de negocio
 ├── repositories        # Acceso a datos (JPA)
@@ -27,6 +28,7 @@
 ├── routes              # Rutas centralizadas
 ├── exceptions          # Manejo de errores personalizados
 └── application.yml     # Configuración del proyecto
+```
 
 ---
 
