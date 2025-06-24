@@ -3,7 +3,7 @@ spring:
     name: expensemate
 
   datasource:
-    url: jdbc:postgresql://localhost:6964/expensemate_db
+    url: jdbc:postgresql://localhost:6963/expensemate_db?ssl=false
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: postgres
