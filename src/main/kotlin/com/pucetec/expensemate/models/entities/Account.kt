@@ -13,6 +13,8 @@ data class Account(
     @Column(name = "account_number")
     var accountNumber: String,
 
+    var balance: Double = 0.0,
+
     @ManyToOne
     val user: User
 ): BaseEntity()

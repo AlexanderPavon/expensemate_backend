@@ -1,18 +1,19 @@
 package com.pucetec.expensemate.models.entities
 
-import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import java.time.LocalDate
 
 @Entity
 @Table(name = "movements")
 data class Movement(
-    var type: String, // "ingreso" o "egreso"
+    @Enumerated(EnumType.STRING)
+    var type: MovementType,
+
     var amount: Double,
+
     var date: LocalDate,
-    var note: String? = null, // opcional
+
+    var note: String? = null,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -24,9 +25,9 @@ data class Movement(
 
     @ManyToOne
     @JoinColumn(name = "credit_card_id")
-    var creditCard: CreditCard? = null, // opcional
+    var creditCard: CreditCard? = null,
 
     @ManyToOne
     @JoinColumn(name = "account_id")
-    var account: Account? = null // opcional
-): BaseEntity()
+    var account: Account? = null
+) : BaseEntity()

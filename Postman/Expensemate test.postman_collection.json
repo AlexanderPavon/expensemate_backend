@@ -103,7 +103,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Transporte\"\r\n}",
+					"raw": "{\r\n  \"name\": \"Sueldo\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -133,7 +133,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"engreso\",\r\n  \"amount\": 5.75,\r\n  \"date\": \"2025-06-16\",\r\n  \"note\": \"Pago de uver\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2000,\r\n  \"date\": \"2025-08-13\",\r\n  \"note\": \"Sueldo mes de julio\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -182,6 +182,30 @@
 			"response": []
 		},
 		{
+			"name": "Get All Users",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Account",
 			"request": {
 				"auth": {
@@ -201,6 +225,30 @@
 						"expensemate",
 						"accounts",
 						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Accounts",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/accounts",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"accounts"
 					]
 				}
 			},
@@ -232,6 +280,30 @@
 			"response": []
 		},
 		{
+			"name": "Get All CreditCards",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/credit-cards",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"credit-cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Category",
 			"request": {
 				"auth": {
@@ -257,6 +329,30 @@
 			"response": []
 		},
 		{
+			"name": "Get All Categories",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/categories",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"categories"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get Movement",
 			"request": {
 				"auth": {
@@ -276,6 +372,30 @@
 						"expensemate",
 						"movements",
 						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Movements",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/movements",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"movements"
 					]
 				}
 			},
@@ -393,7 +513,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Educación\"\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Sueldo Actualizado\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -427,7 +547,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"egreso\",\r\n  \"amount\": 130.50,\r\n  \"date\": \"2025-06-16\",\r\n  \"note\": \"Pago de servicio\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2001,\r\n  \"date\": \"2025-08-14\",\r\n  \"note\": \"Sueldo mes de julio actualizado\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -1,7 +1,9 @@
 package com.pucetec.expensemate.services
 
+import com.pucetec.expensemate.exceptions.exceptions.InvalidRequestException
 import com.pucetec.expensemate.exceptions.exceptions.ResourceNotFoundException
 import com.pucetec.expensemate.mappers.MovementMapper
+import com.pucetec.expensemate.models.entities.MovementType
 import com.pucetec.expensemate.models.requests.CreateMovementRequest
 import com.pucetec.expensemate.models.responses.MovementResponse
 import com.pucetec.expensemate.repositories.*
@@ -19,17 +21,42 @@ class MovementService(
     fun createMovement(request: CreateMovementRequest): MovementResponse {
         val user = userRepository.findById(request.userId)
             .orElseThrow { ResourceNotFoundException("User not found") }
+
         val category = categoryRepository.findById(request.categoryId)
             .orElseThrow { ResourceNotFoundException("Category not found") }
+
         val creditCard = request.creditCardId?.let {
-            creditCardRepository.findById(it).orElseThrow { ResourceNotFoundException("CreditCard not found") }
+            creditCardRepository.findById(it).orElseThrow {
+                ResourceNotFoundException("CreditCard not found")
+            }
         }
+
         val account = request.accountId?.let {
-            accountRepository.findById(it).orElseThrow { ResourceNotFoundException("Account not found") }
+            accountRepository.findById(it).orElseThrow {
+                ResourceNotFoundException("Account not found")
+            }
         }
+
+        if (account != null) {
+            when (request.type) {
+                MovementType.INCOME -> {
+                    account.balance += request.amount
+                }
+
+                MovementType.EXPENSE -> {
+                    if (account.balance < request.amount) {
+                        throw InvalidRequestException("Insufficient balance in account")
+                    }
+                    account.balance -= request.amount
+                }
+            }
+            accountRepository.save(account)
+        }
+
         val movement = request.toEntity(user, category, creditCard, account)
         return movementMapper.toResponse(movementRepository.save(movement))
     }
+
 
     fun getAllMovements(): List<MovementResponse> =
         movementRepository.findAll().map { movementMapper.toResponse(it) }

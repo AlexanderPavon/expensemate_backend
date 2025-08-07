@@ -13,6 +13,7 @@ class AccountMapper(
             id = account.id,
             bank = account.bank,
             accountNumber = account.accountNumber,
+            balance = account.balance,
             user = userMapper.toSummary(account.user)
         )
     }
@@ -21,7 +22,8 @@ class AccountMapper(
         return AccountSummaryResponse(
             id = account.id,
             bank = account.bank,
-            accountNumber = account.accountNumber
+            accountNumber = account.accountNumber,
+            balance = account.balance
         )
     }
 }

@@ -8,12 +8,15 @@ import org.springframework.stereotype.Component
 class UserMapper {
 
     fun toSummary(user: User): UserSummaryResponse {
+        val totalBalance = user.accounts.sumOf { it.balance }
         return UserSummaryResponse(
             id = user.id,
             name = user.name,
-            email = user.email
+            email = user.email,
+            totalBalance = totalBalance
         )
     }
+
 
     fun toResponse(user: User): UserResponse {
         return UserResponse(
@@ -23,7 +26,7 @@ class UserMapper {
             movements = user.movements.map { movement ->
                 MovementSummaryResponse(
                     id = movement.id,
-                    type = movement.type,
+                    type = movement.type.toString(),
                     amount = movement.amount,
                     date = movement.date,
                     note = movement.note,
@@ -46,6 +49,7 @@ class UserMapper {
                             id = it.id,
                             bank = it.bank,
                             accountNumber = it.accountNumber,
+                            balance = it.balance,
                             user = toSummary(it.user)
                         )
                     }
@@ -64,7 +68,8 @@ class UserMapper {
                 AccountSummaryResponse(
                     id = account.id,
                     bank = account.bank,
-                    accountNumber = account.accountNumber
+                    accountNumber = account.accountNumber,
+                    balance = account.balance
                 )
             }
         )

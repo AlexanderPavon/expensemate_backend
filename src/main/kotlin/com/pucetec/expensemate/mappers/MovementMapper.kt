@@ -11,7 +11,7 @@ class MovementMapper(
     fun toResponse(movement: Movement): MovementResponse {
         return MovementResponse(
             id = movement.id,
-            type = movement.type,
+            type = movement.type.toString(),
             amount = movement.amount,
             date = movement.date,
             note = movement.note,
@@ -32,7 +32,8 @@ class MovementMapper(
                 AccountSummaryResponse(
                     id = it.id,
                     bank = it.bank,
-                    accountNumber = it.accountNumber
+                    accountNumber = it.accountNumber,
+                    balance = it.balance
                 )
             },
             user = userMapper.toSummary(movement.user)

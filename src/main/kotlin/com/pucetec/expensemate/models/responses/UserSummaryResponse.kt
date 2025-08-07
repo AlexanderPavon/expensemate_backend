@@ -4,4 +4,5 @@ data class UserSummaryResponse(
     val id: Long,
     val name: String,
     val email: String,
+    val totalBalance: Double
 )

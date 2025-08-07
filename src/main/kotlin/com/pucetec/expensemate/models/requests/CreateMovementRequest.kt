@@ -1,12 +1,12 @@
 package com.pucetec.expensemate.models.requests
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.pucetec.expensemate.models.entities.CreditCard
 import com.pucetec.expensemate.models.entities.Movement
+import com.pucetec.expensemate.models.entities.MovementType
 import java.time.LocalDate
 
 data class CreateMovementRequest(
-    val type: String, // "ingreso" o "egreso"
+    val type: MovementType,// "ingreso" o "egreso"
     val amount: Double,
     val date: LocalDate,
     val note: String?, // opcional
