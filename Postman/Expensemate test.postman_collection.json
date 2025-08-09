@@ -208,6 +208,32 @@
 			"response": []
 		},
 		{
+			"name": "Get User Summary",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/users/1/summary",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"users",
+						"1",
+						"summary"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get All Users",
 			"request": {
 				"auth": {
@@ -405,30 +431,6 @@
 		},
 		{
 			"name": "Get All Movements",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/api/expensemate/movements",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"expensemate",
-						"movements"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get Summary",
 			"request": {
 				"auth": {
 					"type": "noauth"
