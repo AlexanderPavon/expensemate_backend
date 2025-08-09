@@ -1,7 +1,7 @@
 package com.pucetec.expensemate.models.entities
 
 import jakarta.persistence.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "movements")
@@ -11,7 +11,7 @@ data class Movement(
 
     var amount: Double,
 
-    var date: LocalDate,
+    var date: LocalDateTime = LocalDateTime.now(),
 
     var note: String? = null,
 

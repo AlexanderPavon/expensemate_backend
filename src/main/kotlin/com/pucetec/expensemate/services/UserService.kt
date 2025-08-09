@@ -28,10 +28,17 @@ class UserService(
             }
         )
 
-    fun getUserByEmail(email: String): UserResponse {
+    fun getUserByEmail(email: String): UserSummaryResponse {
         val user = userRepository.findByEmail(email)
             ?: throw ResourceNotFoundException("User with email $email not found")
-        return userMapper.toResponse(user)
+        return userMapper.toSummary(user)
+    }
+
+    fun getUserSummary(id: Long): UserSummaryResponse {
+        val user = userRepository.findById(id)
+            .orElseThrow { ResourceNotFoundException("User with ID $id not found") }
+
+        return userMapper.toSummary(user)
     }
 
     fun updateUser(id: Long, request: CreateUserRequest): UserResponse {
@@ -48,12 +55,5 @@ class UserService(
             ResourceNotFoundException("User with ID $id not found")
         }
         userRepository.delete(user)
-    }
-
-    fun getUserSummary(id: Long): UserSummaryResponse {
-        val user = userRepository.findById(id)
-            .orElseThrow { ResourceNotFoundException("User with ID $id not found") }
-
-        return userMapper.toSummary(user)
     }
 }

@@ -3,12 +3,11 @@ package com.pucetec.expensemate.models.requests
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.pucetec.expensemate.models.entities.Movement
 import com.pucetec.expensemate.models.entities.MovementType
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class CreateMovementRequest(
     val type: MovementType,// "ingreso" o "egreso"
     val amount: Double,
-    val date: LocalDate,
     val note: String?, // opcional
     @JsonProperty("user_id")
     val userId: Long,
@@ -28,7 +27,7 @@ data class CreateMovementRequest(
         return Movement(
             type = this.type,
             amount = this.amount,
-            date = this.date,
+            date = LocalDateTime.now(),
             note = this.note,
             user = user,
             category = category,

@@ -25,9 +25,9 @@ class UserController(
     @GetMapping("/{id}")
     fun getUserById(@PathVariable id: Long): UserResponse = userService.getUserById(id)
 
-    @GetMapping("/email/{email}")
-    fun getUserByEmail(@PathVariable email: String): UserResponse =
-        userService.getUserByEmail(email)
+    @GetMapping("/email/{email:.+}")
+    fun getUserByEmail(@PathVariable email: String): UserSummaryResponse =
+        userService.getUserByEmail(email.trim())
 
     @GetMapping("/{id}/summary")
     fun getUserSummary(@PathVariable id: Long): ResponseEntity<UserSummaryResponse> {

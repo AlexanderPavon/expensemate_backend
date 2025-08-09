@@ -20,7 +20,11 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.*
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.delete
+import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
 import kotlin.test.assertEquals
 
 @WebMvcTest(AccountController::class)
@@ -52,7 +56,8 @@ class AccountControllerTest {
             id = 1L,
             bank = request.bank,
             accountNumber = request.accountNumber,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            balance = 1500.50,
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5000.0)
         )
 
         `when`(accountService.createAccount(request)).thenReturn(response)
@@ -67,7 +72,9 @@ class AccountControllerTest {
             jsonPath("$.id") { value(1) }
             jsonPath("$.bank") { value("Banco Pichincha") }
             jsonPath("$.accountNumber") { value("12345678") }
+            jsonPath("$.balance") { value(1500.50) }
             jsonPath("$.user.name") { value("Alexander Pavón") }
+            jsonPath("$.user.totalBalance") { value(5000.0) }
         }.andReturn()
 
         assertEquals(201, result.response.status)
@@ -76,8 +83,8 @@ class AccountControllerTest {
     @Test
     fun should_return_all_accounts_when_get_all() {
         val accounts = listOf(
-            AccountResponse(1L, "Banco Pichincha", "12345678", UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")),
-            AccountResponse(2L, "Banco Guayaquil", "87654321", UserSummaryResponse(2L, "Kenia Osuna", "kos@puce.edu.ec"))
+            AccountResponse(1L, "Banco Pichincha", "12345678", 1500.0, UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)),
+            AccountResponse(2L, "Banco Guayaquil", "87654321", 2000.0, UserSummaryResponse(2L, "Kenia Osuna", "kos@puce.edu.ec", 6000.0))
         )
 
         `when`(accountService.getAllAccounts()).thenReturn(accounts)
@@ -87,7 +94,9 @@ class AccountControllerTest {
                 status { isOk() }
                 jsonPath("$.size()") { value(2) }
                 jsonPath("$[0].bank") { value("Banco Pichincha") }
+                jsonPath("$[0].balance") { value(1500.0) }
                 jsonPath("$[1].bank") { value("Banco Guayaquil") }
+                jsonPath("$[1].balance") { value(2000.0) }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -95,7 +104,10 @@ class AccountControllerTest {
 
     @Test
     fun should_return_account_when_get_by_id() {
-        val response = AccountResponse(1L, "Banco Pichincha", "12345678", UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec"))
+        val response = AccountResponse(
+            1L, "Banco Pichincha", "12345678", 1500.0,
+            UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+        )
 
         `when`(accountService.getAccountById(1L)).thenReturn(response)
 
@@ -104,6 +116,7 @@ class AccountControllerTest {
                 status { isOk() }
                 jsonPath("$.id") { value(1) }
                 jsonPath("$.bank") { value("Banco Pichincha") }
+                jsonPath("$.balance") { value(1500.0) }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -112,11 +125,12 @@ class AccountControllerTest {
     @Test
     fun should_return_404_when_account_not_found() {
         `when`(accountService.getAccountById(99L))
-            .thenThrow(ResourceNotFoundException("Account not found"))
+            .thenThrow(ResourceNotFoundException("Account with ID 99 not found"))
 
         val result = mockMvc.get("$baseUrl/99")
             .andExpect {
                 status { isNotFound() }
+                jsonPath("$.error") { value("Account with ID 99 not found") }
             }.andReturn()
 
         assertEquals(404, result.response.status)
@@ -125,7 +139,10 @@ class AccountControllerTest {
     @Test
     fun should_update_account_when_put() {
         val request = CreateAccountRequest("Banco Guayaquil", "99999999", 1L)
-        val response = AccountResponse(1L, request.bank, request.accountNumber, UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec"))
+        val response = AccountResponse(
+            1L, request.bank, request.accountNumber, 2000.0,
+            UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+        )
 
         `when`(accountService.updateAccount(1L, request)).thenReturn(response)
 
@@ -138,6 +155,7 @@ class AccountControllerTest {
             status { isOk() }
             jsonPath("$.id") { value(1) }
             jsonPath("$.bank") { value("Banco Guayaquil") }
+            jsonPath("$.balance") { value(2000.0) }
         }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -148,7 +166,7 @@ class AccountControllerTest {
         val request = CreateAccountRequest("Banco Guayaquil", "99999999", 1L)
 
         `when`(accountService.updateAccount(99L, request))
-            .thenThrow(ResourceNotFoundException("Account not found"))
+            .thenThrow(ResourceNotFoundException("Account with ID 99 not found"))
 
         val json = objectMapper.writeValueAsString(request)
 
@@ -157,6 +175,7 @@ class AccountControllerTest {
             content = json
         }.andExpect {
             status { isNotFound() }
+            jsonPath("$.error") { value("Account with ID 99 not found") }
         }.andReturn()
 
         assertEquals(404, result.response.status)
@@ -175,11 +194,12 @@ class AccountControllerTest {
     @Test
     fun should_return_404_when_deleting_nonexistent_account() {
         `when`(accountService.deleteAccount(99L))
-            .thenThrow(ResourceNotFoundException("Account not found"))
+            .thenThrow(ResourceNotFoundException("Account with ID 99 not found"))
 
         val result = mockMvc.delete("$baseUrl/99")
             .andExpect {
                 status { isNotFound() }
+                jsonPath("$.error") { value("Account with ID 99 not found") }
             }.andReturn()
 
         assertEquals(404, result.response.status)

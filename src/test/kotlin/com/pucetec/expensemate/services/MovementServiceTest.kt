@@ -1,5 +1,6 @@
 package com.pucetec.expensemate.services
 
+import com.pucetec.expensemate.exceptions.exceptions.InvalidRequestException
 import com.pucetec.expensemate.exceptions.exceptions.ResourceNotFoundException
 import com.pucetec.expensemate.mappers.MovementMapper
 import com.pucetec.expensemate.models.entities.*
@@ -9,8 +10,9 @@ import com.pucetec.expensemate.repositories.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 class MovementServiceTest {
@@ -42,62 +44,132 @@ class MovementServiceTest {
     }
 
     @Test
-    fun should_create_new_movement() {
+    fun should_create_income_movement_and_increase_account_balance() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
-        val category = Category(name = "Salud")
-        val creditCard = CreditCard("Visa", "1234", "2025-01-01", "2025-01-20", user)
-        val account = Account("Banco Pichincha", "1111222233", user)
+        val category = Category(name = "Salario")
+        val account = Account(bank = "Pichincha", accountNumber = "1111222233", balance = 1000.0, user = user)
 
         val request = CreateMovementRequest(
-            type = "ingreso",
-            amount = 100.0,
-            date = LocalDate.of(2025, 7, 1),
+            type = MovementType.INCOME,
+            amount = 200.0,
             note = "Pago recibido",
             userId = 1L,
-            categoryId = 2L,
-            creditCardId = 3L,
+            categoryId = 10L,
+            creditCardId = null,
             accountId = 4L
         )
 
-        val movement = Movement(
-            type = request.type,
-            amount = request.amount,
-            date = request.date,
-            note = request.note,
-            user = user,
-            category = category,
-            creditCard = creditCard,
-            account = account
-        )
-
+        val now = LocalDateTime.of(2025, 7, 1, 10, 0, 0)
         val response = MovementResponse(
             id = 1L,
-            type = "ingreso",
-            amount = 100.0,
-            date = request.date,
+            type = "income",
+            amount = 200.0,
+            date = now,
             note = "Pago recibido",
-            category = CategoryResponse(2L, "Salud"),
-            creditCard = CreditCardSummaryResponse(3L, "Visa", "1234", "2025-01-01", "2025-01-20"),
-            account = AccountSummaryResponse(4L, "Banco Pichincha", "1111222233"),
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            category = CategoryResponse(10L, "Salario"),
+            creditCard = null,
+            account = AccountSummaryResponse(4L, "Pichincha", "1111222233", balance = 1200.0),
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5200.0)
         )
 
         `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
-        `when`(categoryRepository.findById(2L)).thenReturn(Optional.of(category))
-        `when`(creditCardRepository.findById(3L)).thenReturn(Optional.of(creditCard))
+        `when`(categoryRepository.findById(10L)).thenReturn(Optional.of(category))
         `when`(accountRepository.findById(4L)).thenReturn(Optional.of(account))
-        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(movement)
-        `when`(movementMapper.toResponse(movement)).thenReturn(response)
+
+        val savedMovement = mock(Movement::class.java)
+        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(savedMovement)
+        `when`(movementMapper.toResponse(savedMovement)).thenReturn(response)
 
         val result = movementService.createMovement(request)
 
-        assertEquals("ingreso", result.type)
-        assertEquals(100.0, result.amount)
-        assertEquals("Pago recibido", result.note)
-        assertEquals("Alexander Pavón", result.user.name)
-        assertEquals("Salud", result.category.name)
-        assertEquals("1234", result.creditCard?.lastFourDigits)
-        assertEquals("Banco Pichincha", result.account?.bank)
+        assertEquals("income", result.type)
+        assertEquals(200.0, result.amount)
+        assertEquals(1200.0, account.balance, 0.0001)
+        verify(accountRepository).findById(4L)
+        verify(accountRepository).save(account)
+        verify(movementRepository).save(any(Movement::class.java))
+        verify(movementMapper).toResponse(savedMovement)
+        verifyNoMoreInteractions(movementRepository, movementMapper)
+
+    }
+
+    @Test
+    fun should_create_expense_movement_and_decrease_account_balance() {
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+        val category = Category(name = "Servicios")
+        val account = Account(bank = "Pichincha", accountNumber = "1111222233", balance = 400.0, user = user)
+
+        val request = CreateMovementRequest(
+            type = MovementType.EXPENSE,
+            amount = 150.0,
+            note = "Pago luz",
+            userId = 1L,
+            categoryId = 20L,
+            creditCardId = null,
+            accountId = 4L
+        )
+
+        val now = LocalDateTime.of(2025, 7, 2, 12, 0, 0)
+        val response = MovementResponse(
+            id = 2L,
+            type = "expense",
+            amount = 150.0,
+            date = now,
+            note = "Pago luz",
+            category = CategoryResponse(20L, "Servicios"),
+            creditCard = null,
+            account = AccountSummaryResponse(4L, "Pichincha", "1111222233", balance = 250.0),
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 4850.0)
+        )
+
+        `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
+        `when`(categoryRepository.findById(20L)).thenReturn(Optional.of(category))
+        `when`(accountRepository.findById(4L)).thenReturn(Optional.of(account))
+
+        val savedMovement = mock(Movement::class.java)
+        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(savedMovement)
+        `when`(movementMapper.toResponse(savedMovement)).thenReturn(response)
+
+        val result = movementService.createMovement(request)
+
+        assertEquals("expense", result.type)
+        assertEquals(150.0, result.amount)
+        assertEquals(250.0, account.balance, 0.0001)
+        verify(accountRepository).findById(4L)
+        verify(accountRepository).save(account)
+        verify(movementRepository).save(any(Movement::class.java))
+        verify(movementMapper).toResponse(savedMovement)
+        verifyNoMoreInteractions(movementRepository, movementMapper)
+    }
+
+    @Test
+    fun should_throw_invalid_request_when_expense_exceeds_balance() {
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+        val category = Category(name = "Compras")
+        val account = Account(bank = "Pichincha", accountNumber = "1111222233", balance = 100.0, user = user)
+
+        val request = CreateMovementRequest(
+            type = MovementType.EXPENSE,
+            amount = 300.0,
+            note = "Compra grande",
+            userId = 1L,
+            categoryId = 30L,
+            creditCardId = null,
+            accountId = 4L
+        )
+
+        `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
+        `when`(categoryRepository.findById(30L)).thenReturn(Optional.of(category))
+        `when`(accountRepository.findById(4L)).thenReturn(Optional.of(account))
+
+        val ex = assertThrows<InvalidRequestException> {
+            movementService.createMovement(request)
+        }
+        assertEquals("Insufficient balance in account", ex.message)
+        assertEquals(100.0, account.balance, 0.0001)
+
+        verify(accountRepository, never()).save(any(Account::class.java))
+        verifyNoInteractions(movementRepository, movementMapper)
     }
 
     @Test
@@ -106,9 +178,8 @@ class MovementServiceTest {
         val category = Category(name = "Transporte")
 
         val request = CreateMovementRequest(
-            type = "egreso",
+            type = MovementType.EXPENSE,
             amount = 25.0,
-            date = LocalDate.of(2025, 7, 2),
             note = "Taxi",
             userId = 1L,
             categoryId = 2L,
@@ -116,95 +187,91 @@ class MovementServiceTest {
             accountId = null
         )
 
-        val movement = Movement(
-            type = request.type,
-            amount = request.amount,
-            date = request.date,
-            note = request.note,
-            user = user,
-            category = category,
-            creditCard = null,
-            account = null
-        )
-
+        val now = LocalDateTime.of(2025, 7, 2, 8, 0, 0)
         val response = MovementResponse(
-            id = 2L,
-            type = "egreso",
+            id = 3L,
+            type = "expense",
             amount = 25.0,
-            date = request.date,
+            date = now,
             note = "Taxi",
             category = CategoryResponse(2L, "Transporte"),
             creditCard = null,
             account = null,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 4975.0)
         )
 
         `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
         `when`(categoryRepository.findById(2L)).thenReturn(Optional.of(category))
-        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(movement)
-        `when`(movementMapper.toResponse(movement)).thenReturn(response)
+
+        val savedMovement = mock(Movement::class.java)
+        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(savedMovement)
+        `when`(movementMapper.toResponse(savedMovement)).thenReturn(response)
 
         val result = movementService.createMovement(request)
 
-        assertEquals("egreso", result.type)
+        assertEquals("expense", result.type)
         assertEquals(25.0, result.amount)
         assertEquals("Taxi", result.note)
         assertNull(result.creditCard)
         assertNull(result.account)
+        verifyNoInteractions(accountRepository, creditCardRepository)
     }
 
     @Test
     fun should_return_all_movements() {
-        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
-        val category = Category(name = "Comida")
-        val movement = Movement("egreso", 50.0, LocalDate.of(2025, 6, 15), "Almuerzo", user, category)
-
+        val now = LocalDateTime.of(2025, 6, 15, 12, 0, 0)
         val response = MovementResponse(
             id = 1L,
-            type = "egreso",
+            type = "expense",
             amount = 50.0,
-            date = movement.date,
+            date = now,
             note = "Almuerzo",
             category = CategoryResponse(1L, "Comida"),
             creditCard = null,
             account = null,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 4950.0)
         )
 
-        `when`(movementRepository.findAll()).thenReturn(listOf(movement))
-        `when`(movementMapper.toResponse(movement)).thenReturn(response)
+        val m1 = mock(Movement::class.java)
+        `when`(movementRepository.findAll()).thenReturn(listOf(m1))
+        `when`(movementMapper.toResponse(m1)).thenReturn(response)
 
         val result = movementService.getAllMovements()
 
         assertEquals(1, result.size)
-        assertEquals("egreso", result[0].type)
+        assertEquals("expense", result[0].type)
+        verify(movementRepository).findAll()
+        verify(movementMapper).toResponse(m1)
+        verifyNoMoreInteractions(movementRepository, movementMapper)
+        verifyNoInteractions(userRepository, categoryRepository, accountRepository, creditCardRepository)
     }
 
     @Test
     fun should_return_movement_by_id() {
-        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
-        val category = Category(name = "Educación")
-        val movement = Movement("ingreso", 200.0, LocalDate.now(), null, user, category)
-
+        val now = LocalDateTime.of(2025, 7, 3, 10, 0, 0)
         val response = MovementResponse(
             id = 1L,
-            type = "ingreso",
+            type = "income",
             amount = 200.0,
-            date = LocalDate.now(),
+            date = now,
             note = null,
             category = CategoryResponse(1L, "Educación"),
             creditCard = null,
             account = null,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5000.0)
         )
 
-        `when`(movementRepository.findById(1L)).thenReturn(Optional.of(movement))
-        `when`(movementMapper.toResponse(movement)).thenReturn(response)
+        val found = mock(Movement::class.java)
+        `when`(movementRepository.findById(1L)).thenReturn(Optional.of(found))
+        `when`(movementMapper.toResponse(found)).thenReturn(response)
 
         val result = movementService.getMovementById(1L)
 
-        assertEquals("ingreso", result.type)
+        assertEquals("income", result.type)
         assertEquals(200.0, result.amount)
+        verify(movementRepository).findById(1L)
+        verify(movementMapper).toResponse(found)
+        verifyNoMoreInteractions(movementRepository, movementMapper)
     }
 
     @Test
@@ -214,30 +281,23 @@ class MovementServiceTest {
         assertThrows<ResourceNotFoundException> {
             movementService.getMovementById(1L)
         }
+
+        verify(movementRepository).findById(1L)
+        verifyNoInteractions(movementMapper)
     }
 
     @Test
-    fun should_update_movement_successfully() {
+    fun should_update_movement_successfully_with_card_and_account() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
         val category = Category(name = "Salud")
         val creditCard = CreditCard("Visa", "1234", "2025-01-01", "2025-01-20", user)
-        val account = Account("Banco Pichincha", "1111222233", user)
+        val account = Account("Pichincha", "1111222233", balance = 1300.0, user = user)
 
-        val existingMovement = Movement(
-            type = "egreso",
-            amount = 50.0,
-            date = LocalDate.of(2025, 6, 15),
-            note = "Viejo",
-            user = user,
-            category = category,
-            creditCard = creditCard,
-            account = account
-        )
+        val existingMovement = mock(Movement::class.java)
 
         val request = CreateMovementRequest(
-            type = "ingreso",
+            type = MovementType.INCOME,
             amount = 200.0,
-            date = LocalDate.of(2025, 7, 1),
             note = "Actualizado",
             userId = 1L,
             categoryId = 2L,
@@ -245,16 +305,17 @@ class MovementServiceTest {
             accountId = 4L
         )
 
+        val now = LocalDateTime.of(2025, 7, 5, 9, 0, 0)
         val response = MovementResponse(
             id = 1L,
-            type = "ingreso",
+            type = "income",
             amount = 200.0,
-            date = request.date,
+            date = now,
             note = "Actualizado",
             category = CategoryResponse(2L, "Salud"),
             creditCard = CreditCardSummaryResponse(3L, "Visa", "1234", "2025-01-01", "2025-01-20"),
-            account = AccountSummaryResponse(4L, "Banco Pichincha", "1111222233"),
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            account = AccountSummaryResponse(4L, "Pichincha", "1111222233", balance = 1300.0),
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5200.0)
         )
 
         `when`(movementRepository.findById(1L)).thenReturn(Optional.of(existingMovement))
@@ -262,79 +323,67 @@ class MovementServiceTest {
         `when`(categoryRepository.findById(2L)).thenReturn(Optional.of(category))
         `when`(creditCardRepository.findById(3L)).thenReturn(Optional.of(creditCard))
         `when`(accountRepository.findById(4L)).thenReturn(Optional.of(account))
-        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(existingMovement)
+        `when`(movementRepository.save(existingMovement)).thenReturn(existingMovement)
         `when`(movementMapper.toResponse(existingMovement)).thenReturn(response)
 
         val result = movementService.updateMovement(1L, request)
 
-        assertEquals("ingreso", result.type)
+        assertEquals("income", result.type)
         assertEquals(200.0, result.amount)
         assertEquals("Actualizado", result.note)
+        verify(movementRepository).findById(1L)
+        verify(userRepository).findById(1L)
+        verify(categoryRepository).findById(2L)
+        verify(creditCardRepository).findById(3L)
+        verify(accountRepository).findById(4L)
+        verify(movementRepository).save(existingMovement)
+        verify(movementMapper).toResponse(existingMovement)
     }
 
     @Test
     fun should_update_movement_without_credit_card_or_account() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
         val category = Category(name = "Educación")
+        val existingMovement = mock(Movement::class.java)
 
-        val existingMovement = Movement(
-            type = "egreso",
-            amount = 50.0,
-            date = LocalDate.of(2025, 6, 10),
-            note = "Cuaderno",
-            user = user,
-            category = category
-        )
-
-        val updatedRequest = CreateMovementRequest(
-            type = "ingreso",
+        val request = CreateMovementRequest(
+            type = MovementType.EXPENSE,
             amount = 150.0,
-            date = LocalDate.of(2025, 7, 2),
-            note = "Beca",
+            note = "Beca devolución",
             userId = 1L,
             categoryId = 2L,
             creditCardId = null,
             accountId = null
         )
 
-        val updatedMovement = Movement(
-            type = updatedRequest.type,
-            amount = updatedRequest.amount,
-            date = updatedRequest.date,
-            note = updatedRequest.note,
-            user = user,
-            category = category,
-            creditCard = null,
-            account = null
-        )
-
+        val now = LocalDateTime.of(2025, 7, 2, 13, 0, 0)
         val response = MovementResponse(
             id = 1L,
-            type = "ingreso",
+            type = "expense",
             amount = 150.0,
-            date = updatedRequest.date,
-            note = "Beca",
+            date = now,
+            note = "Beca devolución",
             category = CategoryResponse(2L, "Educación"),
             creditCard = null,
             account = null,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec")
+            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 4850.0)
         )
 
         `when`(movementRepository.findById(1L)).thenReturn(Optional.of(existingMovement))
         `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
         `when`(categoryRepository.findById(2L)).thenReturn(Optional.of(category))
-        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(updatedMovement)
-        `when`(movementMapper.toResponse(updatedMovement)).thenReturn(response)
+        `when`(movementRepository.save(existingMovement)).thenReturn(existingMovement)
+        `when`(movementMapper.toResponse(existingMovement)).thenReturn(response)
 
-        val result = movementService.updateMovement(1L, updatedRequest)
+        val result = movementService.updateMovement(1L, request)
 
-        assertEquals("ingreso", result.type)
+        assertEquals("expense", result.type)
         assertEquals(150.0, result.amount)
-        assertEquals("Beca", result.note)
-        assertEquals("Educación", result.category.name)
-        assertEquals("Alexander Pavón", result.user.name)
+        assertEquals("Beca devolución", result.note)
         assertNull(result.creditCard)
         assertNull(result.account)
+        verify(creditCardRepository, never()).findById(anyLong())
+        verify(accountRepository, never()).findById(anyLong())
     }
 
     @Test
@@ -343,9 +392,8 @@ class MovementServiceTest {
         val category = Category(name = "Salud")
 
         val request = CreateMovementRequest(
-            type = "ingreso",
+            type = MovementType.INCOME,
             amount = 100.0,
-            date = LocalDate.of(2025, 7, 1),
             note = "Prueba",
             userId = 1L,
             categoryId = 2L,
@@ -360,6 +408,8 @@ class MovementServiceTest {
         assertThrows<ResourceNotFoundException> {
             movementService.createMovement(request)
         }
+
+        verifyNoInteractions(movementRepository, movementMapper, accountRepository)
     }
 
     @Test
@@ -368,9 +418,8 @@ class MovementServiceTest {
         val category = Category(name = "Salud")
 
         val request = CreateMovementRequest(
-            type = "ingreso",
+            type = MovementType.INCOME,
             amount = 100.0,
-            date = LocalDate.of(2025, 7, 1),
             note = "Prueba",
             userId = 1L,
             categoryId = 2L,
@@ -385,14 +434,15 @@ class MovementServiceTest {
         assertThrows<ResourceNotFoundException> {
             movementService.createMovement(request)
         }
+
+        verifyNoInteractions(movementRepository, movementMapper)
     }
 
     @Test
     fun should_throw_exception_when_updating_non_existent_movement() {
         val request = CreateMovementRequest(
-            type = "egreso",
+            type = MovementType.EXPENSE,
             amount = 150.0,
-            date = LocalDate.now(),
             note = "No existe",
             userId = 1L,
             categoryId = 2L,
@@ -408,24 +458,21 @@ class MovementServiceTest {
     }
 
     @Test
+    fun should_delete_movement() {
+        val existing = mock(Movement::class.java)
+        `when`(movementRepository.findById(1L)).thenReturn(Optional.of(existing))
+
+        movementService.deleteMovement(1L)
+
+        verify(movementRepository).delete(existing)
+    }
+
+    @Test
     fun should_throw_exception_when_deleting_non_existent_movement() {
         `when`(movementRepository.findById(1L)).thenReturn(Optional.empty())
 
         assertThrows<ResourceNotFoundException> {
             movementService.deleteMovement(1L)
         }
-    }
-
-    @Test
-    fun should_delete_movement() {
-        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
-        val category = Category(name = "Servicios")
-        val movement = Movement("egreso", 70.0, LocalDate.now(), "Luz", user, category)
-
-        `when`(movementRepository.findById(1L)).thenReturn(Optional.of(movement))
-
-        movementService.deleteMovement(1L)
-
-        verify(movementRepository).delete(movement)
     }
 }

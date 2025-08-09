@@ -57,7 +57,6 @@ class MovementService(
         return movementMapper.toResponse(movementRepository.save(movement))
     }
 
-
     fun getAllMovements(): List<MovementResponse> =
         movementRepository.findAll().map { movementMapper.toResponse(it) }
 
@@ -85,7 +84,6 @@ class MovementService(
 
         movement.type = request.type
         movement.amount = request.amount
-        movement.date = request.date
         movement.note = request.note
         movement.user = user
         movement.category = category

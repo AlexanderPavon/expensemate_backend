@@ -133,7 +133,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2000,\r\n  \"date\": \"2025-08-13\",\r\n  \"note\": \"Sueldo mes de julio\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2000,\r\n  \"note\": \"Sueldo mes de julio\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -176,6 +176,32 @@
 						"expensemate",
 						"users",
 						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User by Email",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/users/email/alex@example.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"users",
+						"email",
+						"alex@example.com"
 					]
 				}
 			},
@@ -379,6 +405,30 @@
 		},
 		{
 			"name": "Get All Movements",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/movements",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"movements"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Summary",
 			"request": {
 				"auth": {
 					"type": "noauth"
