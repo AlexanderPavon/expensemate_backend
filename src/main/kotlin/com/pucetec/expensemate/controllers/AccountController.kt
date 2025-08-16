@@ -24,6 +24,10 @@ class AccountController(
     fun getAccountById(@PathVariable id: Long): AccountResponse =
         accountService.getAccountById(id)
 
+    @GetMapping("/by-user/{userId}")
+    fun getAccountsByUser(@PathVariable userId: Long): List<AccountResponse> =
+        accountService.getAccountsByUser(userId)
+
     @PutMapping("/{id}")
     fun updateAccount(@PathVariable id: Long, @RequestBody request: CreateAccountRequest): AccountResponse =
         accountService.updateAccount(id, request)

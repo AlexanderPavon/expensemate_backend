@@ -24,6 +24,17 @@ class MovementController(
     fun getMovementById(@PathVariable id: Long): MovementResponse =
         movementService.getMovementById(id)
 
+    @GetMapping("/by-user/{userId}")
+    fun getMovementsByUser(@PathVariable userId: Long): List<MovementResponse> =
+        movementService.getMovementsByUser(userId)
+
+    @GetMapping("/by-user/{userId}/by-category/{categoryId}")
+    fun getMovementsByUserAndCategory(
+        @PathVariable userId: Long,
+        @PathVariable categoryId: Long
+    ): List<MovementResponse> =
+        movementService.getMovementsByUserAndCategory(userId, categoryId)
+
     @PutMapping("/{id}")
     fun updateMovement(@PathVariable id: Long, @RequestBody request: CreateMovementRequest): MovementResponse =
         movementService.updateMovement(id, request)

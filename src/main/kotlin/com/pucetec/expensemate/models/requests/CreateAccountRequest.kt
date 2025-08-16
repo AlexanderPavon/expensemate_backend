@@ -1,13 +1,13 @@
 package com.pucetec.expensemate.models.requests
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.pucetec.expensemate.models.entities.Account
+import com.fasterxml.jackson.databind.annotation.JsonNaming
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class CreateAccountRequest(
     val bank: String,
-    @JsonProperty("account_number")
     val accountNumber: String,
-    @JsonProperty("user_id")
     val userId: Long
 ){
     fun toEntity(user: com.pucetec.expensemate.models.entities.User): Account {

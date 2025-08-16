@@ -90,7 +90,6 @@ class MovementServiceTest {
         verify(movementRepository).save(any(Movement::class.java))
         verify(movementMapper).toResponse(savedMovement)
         verifyNoMoreInteractions(movementRepository, movementMapper)
-
     }
 
     @Test
@@ -287,6 +286,139 @@ class MovementServiceTest {
     }
 
     @Test
+    fun should_return_movements_by_user() {
+        val userId = 1L
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+
+        val m1 = mock(Movement::class.java)
+        val m2 = mock(Movement::class.java)
+
+        val r1 = MovementResponse(
+            id = 10L,
+            type = "income",
+            amount = 300.0,
+            date = LocalDateTime.of(2025, 7, 10, 8, 0),
+            note = "Pago freelance",
+            category = CategoryResponse(1L, "Ingresos"),
+            creditCard = null,
+            account = AccountSummaryResponse(1L, "Pichincha", "1111", 1800.0),
+            user = UserSummaryResponse(userId, user.name, user.email, 5200.0)
+        )
+        val r2 = MovementResponse(
+            id = 11L,
+            type = "expense",
+            amount = 40.0,
+            date = LocalDateTime.of(2025, 7, 10, 10, 0),
+            note = "Transporte",
+            category = CategoryResponse(3L, "Transporte"),
+            creditCard = null,
+            account = AccountSummaryResponse(1L, "Pichincha", "1111", 1760.0),
+            user = UserSummaryResponse(userId, user.name, user.email, 5160.0)
+        )
+
+        `when`(userRepository.findById(userId)).thenReturn(Optional.of(user))
+        `when`(movementRepository.findAllByUserId(userId)).thenReturn(listOf(m1, m2))
+        `when`(movementMapper.toResponse(m1)).thenReturn(r1)
+        `when`(movementMapper.toResponse(m2)).thenReturn(r2)
+
+        val result = movementService.getMovementsByUser(userId)
+
+        assertEquals(2, result.size)
+        assertEquals("income", result[0].type)
+        assertEquals("expense", result[1].type)
+
+        verify(userRepository).findById(userId)
+        verify(movementRepository).findAllByUserId(userId)
+        verify(movementMapper).toResponse(m1)
+        verify(movementMapper).toResponse(m2)
+        verifyNoMoreInteractions(userRepository, movementRepository, movementMapper)
+    }
+
+    @Test
+    fun should_throw_when_user_not_found_in_get_movements_by_user() {
+        val userId = 999L
+        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
+
+        assertThrows<ResourceNotFoundException> {
+            movementService.getMovementsByUser(userId)
+        }
+
+        verify(userRepository).findById(userId)
+        verifyNoInteractions(movementRepository, movementMapper)
+    }
+
+    @Test
+    fun should_return_movements_by_user_and_category() {
+        val userId = 1L
+        val categoryId = 2L
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+        val category = Category(name = "Alimentación")
+
+        val m = mock(Movement::class.java)
+        val r = MovementResponse(
+            id = 20L,
+            type = "expense",
+            amount = 25.0,
+            date = LocalDateTime.of(2025, 7, 12, 12, 0),
+            note = "Almuerzo",
+            category = CategoryResponse(categoryId, "Alimentación"),
+            creditCard = null,
+            account = AccountSummaryResponse(1L, "Pichincha", "2222", 900.0),
+            user = UserSummaryResponse(userId, user.name, user.email, 4000.0)
+        )
+
+        `when`(userRepository.findById(userId)).thenReturn(Optional.of(user))
+        `when`(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category))
+        `when`(movementRepository.findAllByUserIdAndCategoryId(userId, categoryId)).thenReturn(listOf(m))
+        `when`(movementMapper.toResponse(m)).thenReturn(r)
+
+        val result = movementService.getMovementsByUserAndCategory(userId, categoryId)
+
+        assertEquals(1, result.size)
+        assertEquals("expense", result[0].type)
+        assertEquals("Alimentación", result[0].category.name)
+
+        verify(userRepository).findById(userId)
+        verify(categoryRepository).findById(categoryId)
+        verify(movementRepository).findAllByUserIdAndCategoryId(userId, categoryId)
+        verify(movementMapper).toResponse(m)
+        verifyNoMoreInteractions(userRepository, categoryRepository, movementRepository, movementMapper)
+    }
+
+    @Test
+    fun should_throw_when_user_or_category_not_found_in_get_by_user_and_category() {
+        val userId = 1L
+        val categoryId = 999L
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+
+        `when`(userRepository.findById(userId)).thenReturn(Optional.of(user))
+        `when`(categoryRepository.findById(categoryId)).thenReturn(Optional.empty())
+
+        assertThrows<ResourceNotFoundException> {
+            movementService.getMovementsByUserAndCategory(userId, categoryId)
+        }
+
+        verify(userRepository).findById(userId)
+        verify(categoryRepository).findById(categoryId)
+        verifyNoInteractions(movementRepository, movementMapper)
+    }
+
+    @Test
+    fun should_throw_when_user_not_found_in_get_by_user_and_category() {
+        val userId = 999L
+        val categoryId = 2L
+
+        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
+
+        assertThrows<ResourceNotFoundException> {
+            movementService.getMovementsByUserAndCategory(userId, categoryId)
+        }
+
+        verify(userRepository).findById(userId)
+        verifyNoInteractions(categoryRepository, movementRepository, movementMapper)
+    }
+
+    @Test
     fun should_update_movement_successfully_with_card_and_account() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
         val category = Category(name = "Salud")
@@ -384,6 +516,38 @@ class MovementServiceTest {
         assertNull(result.account)
         verify(creditCardRepository, never()).findById(anyLong())
         verify(accountRepository, never()).findById(anyLong())
+    }
+
+    @Test
+    fun should_handle_unexpected_movement_type_gracefully() {
+        val user = User("Alex", "alex@puce.edu.ec")
+        val category = Category("Prueba")
+        val account = Account("Banco", "1111", 500.0, user)
+
+        val request = CreateMovementRequest(
+            type = MovementType.valueOf("INCOME"),
+            amount = 100.0,
+            note = "Test",
+            userId = 1L,
+            categoryId = 2L,
+            creditCardId = null,
+            accountId = 3L
+        )
+
+        `when`(userRepository.findById(1L)).thenReturn(Optional.of(user))
+        `when`(categoryRepository.findById(2L)).thenReturn(Optional.of(category))
+        `when`(accountRepository.findById(3L)).thenReturn(Optional.of(account))
+
+        val savedMovement = mock(Movement::class.java)
+        `when`(movementRepository.save(any(Movement::class.java))).thenReturn(savedMovement)
+        `when`(movementMapper.toResponse(savedMovement)).thenReturn(
+            MovementResponse(1L,"income",100.0,LocalDateTime.now(),"Test",
+                CategoryResponse(2L,"Prueba"),null,null,
+                UserSummaryResponse(1L,"Alex","alex@puce.edu.ec",600.0))
+        )
+
+        val result = movementService.createMovement(request)
+        assertEquals("income", result.type)
     }
 
     @Test

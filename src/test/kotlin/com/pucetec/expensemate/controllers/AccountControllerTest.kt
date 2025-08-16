@@ -51,13 +51,19 @@ class AccountControllerTest {
 
     @Test
     fun should_create_account_when_post() {
-        val request = CreateAccountRequest("Banco Pichincha", "12345678", 1L)
+        val request = CreateAccountRequest(
+            bank = "Banco Pichincha",
+            accountNumber = "12345678",
+            userId = 1L
+        )
         val response = AccountResponse(
             id = 1L,
             bank = request.bank,
             accountNumber = request.accountNumber,
             balance = 1500.50,
-            user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5000.0)
+            user = UserSummaryResponse(
+                1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5000.0
+            )
         )
 
         `when`(accountService.createAccount(request)).thenReturn(response)
@@ -71,10 +77,10 @@ class AccountControllerTest {
             status { isCreated() }
             jsonPath("$.id") { value(1) }
             jsonPath("$.bank") { value("Banco Pichincha") }
-            jsonPath("$.accountNumber") { value("12345678") }
+            jsonPath("$.account_number") { value("12345678") }
             jsonPath("$.balance") { value(1500.50) }
             jsonPath("$.user.name") { value("Alexander Pavón") }
-            jsonPath("$.user.totalBalance") { value(5000.0) }
+            jsonPath("$.user.total_balance") { value(5000.0) }
         }.andReturn()
 
         assertEquals(201, result.response.status)
@@ -83,8 +89,14 @@ class AccountControllerTest {
     @Test
     fun should_return_all_accounts_when_get_all() {
         val accounts = listOf(
-            AccountResponse(1L, "Banco Pichincha", "12345678", 1500.0, UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)),
-            AccountResponse(2L, "Banco Guayaquil", "87654321", 2000.0, UserSummaryResponse(2L, "Kenia Osuna", "kos@puce.edu.ec", 6000.0))
+            AccountResponse(
+                1L, "Banco Pichincha", "12345678", 1500.0,
+                UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+            ),
+            AccountResponse(
+                2L, "Banco Guayaquil", "87654321", 2000.0,
+                UserSummaryResponse(2L, "Kenia Osuna", "kos@puce.edu.ec", 6000.0)
+            )
         )
 
         `when`(accountService.getAllAccounts()).thenReturn(accounts)
@@ -131,6 +143,48 @@ class AccountControllerTest {
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.error") { value("Account with ID 99 not found") }
+            }.andReturn()
+
+        assertEquals(404, result.response.status)
+    }
+
+    @Test
+    fun should_return_accounts_by_user_when_get_by_user() {
+        val userId = 1L
+        val accounts = listOf(
+            AccountResponse(
+                10L, "Banco Pichincha", "1111", 1200.0,
+                UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+            ),
+            AccountResponse(
+                11L, "Banco Guayaquil", "2222", 800.0,
+                UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+            )
+        )
+
+        `when`(accountService.getAccountsByUser(userId)).thenReturn(accounts)
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.size()") { value(2) }
+                jsonPath("$[0].user.id") { value(userId.toInt()) }
+                jsonPath("$[1].user.id") { value(userId.toInt()) }
+            }.andReturn()
+
+        assertEquals(200, result.response.status)
+    }
+
+    @Test
+    fun should_return_404_when_user_not_found_in_get_by_user() {
+        val userId = 999L
+        `when`(accountService.getAccountsByUser(userId))
+            .thenThrow(ResourceNotFoundException("User with ID $userId not found"))
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isNotFound() }
+                jsonPath("$.error") { value("User with ID 999 not found") }
             }.andReturn()
 
         assertEquals(404, result.response.status)

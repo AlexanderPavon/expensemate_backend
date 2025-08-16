@@ -74,11 +74,11 @@ class CreditCardControllerTest {
             status { isCreated() }
             jsonPath("$.id") { value(1) }
             jsonPath("$.name") { value("Visa") }
-            jsonPath("$.lastFourDigits") { value("1234") }
-            jsonPath("$.courtDate") { value("15") }
-            jsonPath("$.maximumPaymentDate") { value("30") }
+            jsonPath("$.last_four_digits") { value("1234") }
+            jsonPath("$.court_date") { value("15") }
+            jsonPath("$.maximum_payment_date") { value("30") }
             jsonPath("$.user.name") { value("Alexander Pavón") }
-            jsonPath("$.user.totalBalance") { value(5000.0) }
+            jsonPath("$.user.total_balance") { value(5000.0) }
         }.andReturn()
 
         assertEquals(201, result.response.status)
@@ -104,9 +104,9 @@ class CreditCardControllerTest {
                 status { isOk() }
                 jsonPath("$.size()") { value(2) }
                 jsonPath("$[0].name") { value("Visa") }
-                jsonPath("$[0].lastFourDigits") { value("1234") }
+                jsonPath("$[0].last_four_digits") { value("1234") }
                 jsonPath("$[1].name") { value("MasterCard") }
-                jsonPath("$[1].lastFourDigits") { value("5678") }
+                jsonPath("$[1].last_four_digits") { value("5678") }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -126,7 +126,7 @@ class CreditCardControllerTest {
                 status { isOk() }
                 jsonPath("$.id") { value(1) }
                 jsonPath("$.name") { value("Visa") }
-                jsonPath("$.lastFourDigits") { value("1234") }
+                jsonPath("$.last_four_digits") { value("1234") }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -141,6 +141,49 @@ class CreditCardControllerTest {
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.error") { value("Credit card with ID 99 not found") }
+            }.andReturn()
+
+        assertEquals(404, result.response.status)
+    }
+
+    @Test
+    fun should_return_cards_by_user_when_get_by_user() {
+        val userId = 1L
+        val cards = listOf(
+            CreditCardResponse(
+                10L, "Visa", "1111", "10", "25",
+                UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+            ),
+            CreditCardResponse(
+                11L, "MasterCard", "2222", "12", "27",
+                UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
+            )
+        )
+
+        `when`(creditCardService.getCardsByUser(userId)).thenReturn(cards)
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.size()") { value(2) }
+                jsonPath("$[0].user.id") { value(userId.toInt()) }
+                jsonPath("$[1].user.id") { value(userId.toInt()) }
+            }.andReturn()
+
+        assertEquals(200, result.response.status)
+    }
+
+    @Test
+    fun should_return_404_when_user_not_found_in_get_by_user() {
+        val userId = 999L
+
+        `when`(creditCardService.getCardsByUser(userId))
+            .thenThrow(ResourceNotFoundException("User with ID $userId not found"))
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isNotFound() }
+                jsonPath("$.error") { value("User with ID 999 not found") }
             }.andReturn()
 
         assertEquals(404, result.response.status)
@@ -174,7 +217,7 @@ class CreditCardControllerTest {
             status { isOk() }
             jsonPath("$.id") { value(1) }
             jsonPath("$.name") { value("MasterCard") }
-            jsonPath("$.lastFourDigits") { value("5678") }
+            jsonPath("$.last_four_digits") { value("5678") }
         }.andReturn()
 
         assertEquals(200, result.response.status)

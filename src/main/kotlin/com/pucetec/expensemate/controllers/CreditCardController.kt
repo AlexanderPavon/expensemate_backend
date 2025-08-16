@@ -24,6 +24,10 @@ class CreditCardController(
     fun getCardById(@PathVariable id: Long): CreditCardResponse =
         creditCardService.getCardById(id)
 
+    @GetMapping("/by-user/{userId}")
+    fun getCardsByUser(@PathVariable userId: Long): List<CreditCardResponse> =
+        creditCardService.getCardsByUser(userId)
+
     @PutMapping("/{id}")
     fun updateCard(@PathVariable id: Long, @RequestBody request: CreateCreditCardRequest): CreditCardResponse =
         creditCardService.updateCard(id, request)

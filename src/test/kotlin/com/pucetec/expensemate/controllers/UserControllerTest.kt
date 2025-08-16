@@ -64,7 +64,7 @@ class UserControllerTest {
                 jsonPath("$.name") { value("Alexander Pavón") }
                 jsonPath("$.email") { value("afpavon@puce.edu.ec") }
                 jsonPath("$.movements") { isArray() }
-                jsonPath("$.creditCards") { isArray() }
+                jsonPath("$.credit_cards") { isArray() }
                 jsonPath("$.accounts") { isArray() }
             }.andReturn()
 
@@ -197,7 +197,7 @@ class UserControllerTest {
                 jsonPath("$.id") { value(1) }
                 jsonPath("$.name") { value("Alexander Pavón") }
                 jsonPath("$.email") { value(email) }
-                jsonPath("$.totalBalance") { value(5000.0) }
+                jsonPath("$.total_balance") { value(5000.0) }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -230,7 +230,7 @@ class UserControllerTest {
                 jsonPath("$.id") { value(1) }
                 jsonPath("$.name") { value("Alexander Pavón") }
                 jsonPath("$.email") { value("afpavon@puce.edu.ec") }
-                jsonPath("$.totalBalance") { value(5200.0) }
+                jsonPath("$.total_balance") { value(5200.0) }
             }.andReturn()
 
         assertEquals(200, result.response.status)

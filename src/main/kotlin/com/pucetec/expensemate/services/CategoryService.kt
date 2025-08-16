@@ -1,5 +1,6 @@
 package com.pucetec.expensemate.services
 
+import com.pucetec.expensemate.exceptions.exceptions.DuplicateResourceException
 import com.pucetec.expensemate.exceptions.exceptions.ResourceNotFoundException
 import com.pucetec.expensemate.mappers.CategoryMapper
 import com.pucetec.expensemate.models.requests.CreateCategoryRequest
@@ -13,8 +14,16 @@ class CategoryService(
     private val categoryMapper: CategoryMapper
 ) {
     fun createCategory(request: CreateCategoryRequest): CategoryResponse {
-        val category = categoryRepository.save(request.toEntity())
-        return categoryMapper.toResponse(category)
+        val name = request.name.trim()
+
+        if (categoryRepository.existsByNameIgnoreCase(name)) {
+            throw DuplicateResourceException("The category '$name' already exists")
+        }
+
+        val entity = request.toEntity().apply { this.name = name }
+
+        val saved = categoryRepository.save(entity)
+        return categoryMapper.toResponse(saved)
     }
 
     fun getAllCategories(): List<CategoryResponse> =
@@ -31,8 +40,17 @@ class CategoryService(
         val category = categoryRepository.findById(id).orElseThrow {
             ResourceNotFoundException("Category with ID $id not found")
         }
-        category.name = request.name
-        return categoryMapper.toResponse(categoryRepository.save(category))
+
+        val name = request.name.trim()
+
+        val existing = categoryRepository.findByNameIgnoreCase(name)
+        if (existing != null && existing.id != category.id) {
+            throw DuplicateResourceException("The category '$name' already exists")
+        }
+
+        category.name = name
+        val saved = categoryRepository.save(category)
+        return categoryMapper.toResponse(saved)
     }
 
     fun deleteCategory(id: Long) {

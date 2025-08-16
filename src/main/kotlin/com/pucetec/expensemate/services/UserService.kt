@@ -1,5 +1,6 @@
 package com.pucetec.expensemate.services
 
+import com.pucetec.expensemate.exceptions.exceptions.DuplicateResourceException
 import com.pucetec.expensemate.exceptions.exceptions.ResourceNotFoundException
 import com.pucetec.expensemate.mappers.UserMapper
 import com.pucetec.expensemate.models.requests.CreateUserRequest
@@ -14,8 +15,20 @@ class UserService(
     private val userMapper: UserMapper
 ) {
     fun createUser(request: CreateUserRequest): UserResponse {
-        val user = userRepository.save(request.toEntity())
-        return userMapper.toResponse(user)
+        val normalizedName = request.name.trim()
+        val normalizedEmail = request.email.trim().lowercase()
+
+        userRepository.findByEmail(normalizedEmail)?.let {
+            throw DuplicateResourceException("Email already registered: $normalizedEmail")
+        }
+
+        val entity = request.toEntity().apply {
+            name = normalizedName
+            email = normalizedEmail
+        }
+
+        val saved = userRepository.save(entity)
+        return userMapper.toResponse(saved)
     }
 
     fun getAllUsers(): List<UserResponse> =
@@ -29,8 +42,9 @@ class UserService(
         )
 
     fun getUserByEmail(email: String): UserSummaryResponse {
-        val user = userRepository.findByEmail(email)
-            ?: throw ResourceNotFoundException("User with email $email not found")
+        val normalizedEmail = email.trim().lowercase()
+        val user = userRepository.findByEmail(normalizedEmail)
+            ?: throw ResourceNotFoundException("User with email $normalizedEmail not found")
         return userMapper.toSummary(user)
     }
 
@@ -45,8 +59,18 @@ class UserService(
         val user = userRepository.findById(id).orElseThrow {
             ResourceNotFoundException("User with ID $id not found")
         }
-        user.name = request.name
-        user.email = request.email
+
+        val normalizedName = request.name.trim()
+        val normalizedEmail = request.email.trim().lowercase()
+
+        val existing = userRepository.findByEmail(normalizedEmail)
+        if (existing != null && existing.id != user.id) {
+            throw DuplicateResourceException("Email already registered: $normalizedEmail")
+        }
+
+        user.name = normalizedName
+        user.email = normalizedEmail
+
         return userMapper.toResponse(userRepository.save(user))
     }
 

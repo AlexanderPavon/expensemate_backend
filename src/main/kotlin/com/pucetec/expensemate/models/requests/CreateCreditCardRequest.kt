@@ -1,18 +1,15 @@
 package com.pucetec.expensemate.models.requests
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.pucetec.expensemate.models.entities.Category
 import com.pucetec.expensemate.models.entities.CreditCard
+import com.fasterxml.jackson.databind.annotation.JsonNaming
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class CreateCreditCardRequest(
     val name: String,
-    @JsonProperty("last_four_digits")
     val lastFourDigits: String,
-    @JsonProperty("court_date")
     val courtDate: String,
-    @JsonProperty("maximum_payment_date")
     val maximumPaymentDate: String,
-    @JsonProperty("user_id")
     val userId: Long
 ){
     fun toEntity(user: com.pucetec.expensemate.models.entities.User): CreditCard {

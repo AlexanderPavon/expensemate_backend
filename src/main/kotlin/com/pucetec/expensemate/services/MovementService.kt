@@ -67,6 +67,25 @@ class MovementService(
             }
         )
 
+    fun getMovementsByUser(userId: Long): List<MovementResponse> {
+        userRepository.findById(userId).orElseThrow {
+            ResourceNotFoundException("User with ID $userId not found")
+        }
+        return movementRepository.findAllByUserId(userId)
+            .map { movementMapper.toResponse(it) }
+    }
+
+    fun getMovementsByUserAndCategory(userId: Long, categoryId: Long): List<MovementResponse> {
+        userRepository.findById(userId).orElseThrow {
+            ResourceNotFoundException("User with ID $userId not found")
+        }
+        categoryRepository.findById(categoryId).orElseThrow {
+            ResourceNotFoundException("Category with ID $categoryId not found")
+        }
+        return movementRepository.findAllByUserIdAndCategoryId(userId, categoryId)
+            .map { movementMapper.toResponse(it) }
+    }
+
     fun updateMovement(id: Long, request: CreateMovementRequest): MovementResponse {
         val movement = movementRepository.findById(id).orElseThrow {
             ResourceNotFoundException("Movement with ID $id not found")

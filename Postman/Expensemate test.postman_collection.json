@@ -307,6 +307,32 @@
 			"response": []
 		},
 		{
+			"name": "Get All Accounts by User",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/accounts/by-user/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"accounts",
+						"by-user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get CreditCard",
 			"request": {
 				"auth": {
@@ -350,6 +376,32 @@
 						"api",
 						"expensemate",
 						"credit-cards"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All CreditCards by User",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/credit-cards/by-user/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"credit-cards",
+						"by-user",
+						"1"
 					]
 				}
 			},
@@ -448,6 +500,60 @@
 						"api",
 						"expensemate",
 						"movements"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Movements by User",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/movements/by-user/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"movements",
+						"by-user",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Movements by User and by Category",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/expensemate/movements/by-user/1/by-category/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"expensemate",
+						"movements",
+						"by-user",
+						"1",
+						"by-category",
+						"1"
 					]
 				}
 			},
@@ -599,7 +705,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2001,\r\n  \"date\": \"2025-08-14\",\r\n  \"note\": \"Sueldo mes de julio actualizado\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
+					"raw": "{\r\n  \"type\": \"INCOME\",\r\n  \"amount\": 2001,\r\n  \"note\": \"Sueldo mes de julio actualizado\",\r\n  \"user_id\": 1,\r\n  \"category_id\": 1,\r\n  \"credit_card_id\": null,\r\n  \"account_id\": 1\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

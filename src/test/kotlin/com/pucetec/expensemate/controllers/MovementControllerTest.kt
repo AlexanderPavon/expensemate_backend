@@ -12,6 +12,7 @@ import com.pucetec.expensemate.models.requests.CreateMovementRequest
 import com.pucetec.expensemate.models.responses.*
 import com.pucetec.expensemate.routes.Routes
 import com.pucetec.expensemate.services.MovementService
+import org.hamcrest.Matchers
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
@@ -84,11 +85,11 @@ class MovementControllerTest {
             jsonPath("$.id") { value(1) }
             jsonPath("$.type") { value("income") }
             jsonPath("$.amount") { value(100.0) }
-            jsonPath("$.date") { value(org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*")) }
+            jsonPath("$.date") { value(Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*")) }
             jsonPath("$.account.bank") { value("Pichincha") }
-            jsonPath("$.account.accountNumber") { value("12345678") }
+            jsonPath("$.account.account_number") { value("12345678") }
             jsonPath("$.account.balance") { value(1500.0) }
-            jsonPath("$.user.totalBalance") { value(5000.0) }
+            jsonPath("$.user.total_balance") { value(5000.0) }
         }.andReturn()
 
         assertEquals(201, result.response.status)
@@ -131,10 +132,10 @@ class MovementControllerTest {
                 status { isOk() }
                 jsonPath("$.size()") { value(2) }
                 jsonPath("$[0].type") { value("income") }
-                jsonPath("$[0].date") { value(org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T.*")) }
+                jsonPath("$[0].date") { value(Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T.*")) }
                 jsonPath("$[1].type") { value("expense") }
-                jsonPath("$[1].creditCard.name") { value("Visa") }
-                jsonPath("$[1].creditCard.lastFourDigits") { value("5678") }
+                jsonPath("$[1].credit_card.name") { value("Visa") }
+                jsonPath("$[1].credit_card.last_four_digits") { value("5678") }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -162,7 +163,7 @@ class MovementControllerTest {
                 status { isOk() }
                 jsonPath("$.id") { value(1) }
                 jsonPath("$.type") { value("income") }
-                jsonPath("$.date") { value(org.hamcrest.Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T.*")) }
+                jsonPath("$.date") { value(Matchers.matchesPattern("\\d{4}-\\d{2}-\\d{2}T.*")) }
             }.andReturn()
 
         assertEquals(200, result.response.status)
@@ -177,6 +178,114 @@ class MovementControllerTest {
             .andExpect {
                 status { isNotFound() }
                 jsonPath("$.error") { value("Movement with ID 99 not found") }
+            }.andReturn()
+
+        assertEquals(404, result.response.status)
+    }
+
+    @Test
+    fun should_return_movements_by_user_when_get_by_user() {
+        val userId = 1L
+        val t = LocalDateTime.of(2025, 7, 10, 8, 0, 0)
+        val list = listOf(
+            MovementResponse(
+                id = 10L,
+                type = "income",
+                amount = 300.0,
+                date = t,
+                note = "Pago freelance",
+                category = CategoryResponse(1L, "Ingresos"),
+                creditCard = null,
+                account = AccountSummaryResponse(1L, "Pichincha", "1111", balance = 1800.0),
+                user = UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5200.0)
+            ),
+            MovementResponse(
+                id = 11L,
+                type = "expense",
+                amount = 40.0,
+                date = t.plusHours(2),
+                note = "Transporte",
+                category = CategoryResponse(3L, "Transporte"),
+                creditCard = null,
+                account = AccountSummaryResponse(1L, "Pichincha", "1111", balance = 1760.0),
+                user = UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5160.0)
+            )
+        )
+
+        `when`(movementService.getMovementsByUser(userId)).thenReturn(list)
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.size()") { value(2) }
+                jsonPath("$[0].user.id") { value(userId.toInt()) }
+                jsonPath("$[1].user.id") { value(userId.toInt()) }
+            }.andReturn()
+
+        assertEquals(200, result.response.status)
+    }
+
+    @Test
+    fun should_return_404_when_user_not_found_in_get_by_user() {
+        val userId = 999L
+        `when`(movementService.getMovementsByUser(userId))
+            .thenThrow(ResourceNotFoundException("User with ID $userId not found"))
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId")
+            .andExpect {
+                status { isNotFound() }
+                jsonPath("$.error") { value("User with ID 999 not found") }
+            }.andReturn()
+
+        assertEquals(404, result.response.status)
+    }
+
+    @Test
+    fun should_return_movements_by_user_and_category_when_get() {
+        val userId = 1L
+        val categoryId = 2L
+        val t = LocalDateTime.of(2025, 7, 12, 12, 0, 0)
+
+        val list = listOf(
+            MovementResponse(
+                id = 20L,
+                type = "expense",
+                amount = 25.0,
+                date = t,
+                note = "Almuerzo",
+                category = CategoryResponse(categoryId, "Alimentación"),
+                creditCard = null,
+                account = AccountSummaryResponse(1L, "Pichincha", "2222", balance = 900.0),
+                user = UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 4000.0)
+            )
+        )
+
+        `when`(movementService.getMovementsByUserAndCategory(userId, categoryId)).thenReturn(list)
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId/by-category/$categoryId")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.size()") { value(1) }
+                jsonPath("$[0].user.id") { value(userId.toInt()) }
+                jsonPath("$[0].category.id") { value(categoryId.toInt()) }
+                jsonPath("$[0].category.name") { value("Alimentación") }
+            }.andReturn()
+
+        assertEquals(200, result.response.status)
+    }
+
+    @Test
+    fun should_return_404_when_user_or_category_not_found_in_get_by_user_and_category() {
+        val userId = 999L
+        val categoryId = 888L
+
+        `when`(movementService.getMovementsByUserAndCategory(userId, categoryId))
+            .thenThrow(ResourceNotFoundException("User $userId or Category $categoryId not found"))
+
+        val result = mockMvc.get("$baseUrl/by-user/$userId/by-category/$categoryId")
+            .andExpect {
+                status { isNotFound() }
+                jsonPath("$.error") { value("User 999 or Category 888 not found") }
             }.andReturn()
 
         assertEquals(404, result.response.status)

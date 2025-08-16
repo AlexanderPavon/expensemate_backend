@@ -31,6 +31,14 @@ class CreditCardService(
             }
         )
 
+    fun getCardsByUser(userId: Long): List<CreditCardResponse> {
+        userRepository.findById(userId).orElseThrow {
+            ResourceNotFoundException("User with ID $userId not found")
+        }
+        return creditCardRepository.findAllByUserId(userId)
+            .map { creditCardMapper.toResponse(it) }
+    }
+
     fun updateCard(id: Long, request: CreateCreditCardRequest): CreditCardResponse {
         val creditCard = creditCardRepository.findById(id).orElseThrow {
             ResourceNotFoundException("Credit card with ID $id not found")

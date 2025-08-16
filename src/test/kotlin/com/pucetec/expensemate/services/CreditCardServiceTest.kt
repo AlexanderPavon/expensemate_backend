@@ -166,6 +166,54 @@ class CreditCardServiceTest {
     }
 
     @Test
+    fun should_return_cards_by_user() {
+        val userId = 1L
+        val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
+
+        val card1 = CreditCard("Visa", "1111", "10", "25", user)
+        val card2 = CreditCard("MC", "2222", "12", "27", user)
+
+        val resp1 = CreditCardResponse(
+            10L, "Visa", "1111", "10", "25",
+            UserSummaryResponse(userId, user.name, user.email, 5000.0)
+        )
+        val resp2 = CreditCardResponse(
+            11L, "MC", "2222", "12", "27",
+            UserSummaryResponse(userId, user.name, user.email, 5000.0)
+        )
+
+        `when`(userRepository.findById(userId)).thenReturn(Optional.of(user))
+        `when`(creditCardRepository.findAllByUserId(userId)).thenReturn(listOf(card1, card2))
+        `when`(creditCardMapper.toResponse(card1)).thenReturn(resp1)
+        `when`(creditCardMapper.toResponse(card2)).thenReturn(resp2)
+
+        val result = creditCardService.getCardsByUser(userId)
+
+        assertEquals(2, result.size)
+        assertEquals("Visa", result[0].name)
+        assertEquals("MC", result[1].name)
+
+        verify(userRepository).findById(userId)
+        verify(creditCardRepository).findAllByUserId(userId)
+        verify(creditCardMapper).toResponse(card1)
+        verify(creditCardMapper).toResponse(card2)
+        verifyNoMoreInteractions(userRepository, creditCardRepository, creditCardMapper)
+    }
+
+    @Test
+    fun should_throw_when_user_not_found_in_get_cards_by_user() {
+        val userId = 999L
+        `when`(userRepository.findById(userId)).thenReturn(Optional.empty())
+
+        assertThrows<ResourceNotFoundException> {
+            creditCardService.getCardsByUser(userId)
+        }
+
+        verify(userRepository).findById(userId)
+        verifyNoInteractions(creditCardRepository, creditCardMapper)
+    }
+
+    @Test
     fun should_update_credit_card() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
         val existingCard = CreditCard("OldCard", "0000", "15", "30", user)
