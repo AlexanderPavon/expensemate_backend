@@ -119,7 +119,7 @@ class MovementControllerTest {
                 date = t2,
                 note = "Gasto comida",
                 category = CategoryResponse(2L, "Alimentación"),
-                creditCard = CreditCardSummaryResponse(1L, "Visa", "5678", "2025-07-05", "2025-07-20"),
+                creditCard = CreditCardSummaryResponse(1L, "Visa", "5678", 15, 30),
                 account = null,
                 user = UserSummaryResponse(2L, "Katherine Iza", "kmiza@puce.edu.ec", 6000.0)
             )

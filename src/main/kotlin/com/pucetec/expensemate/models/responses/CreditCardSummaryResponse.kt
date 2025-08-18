@@ -8,6 +8,6 @@ data class CreditCardSummaryResponse(
     val id: Long,
     val name: String,
     val lastFourDigits: String,
-    val courtDate: String,
-    val maximumPaymentDate: String
+    val courtDate: Int,
+    val maximumPaymentDate: Int
 )

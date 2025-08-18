@@ -8,7 +8,7 @@ data class CreditCardResponse(
     val id: Long,
     val name: String,
     val lastFourDigits: String,
-    val courtDate: String,
-    val maximumPaymentDate: String,
+    val courtDate: Int,
+    val maximumPaymentDate: Int,
     val user: UserSummaryResponse
 )

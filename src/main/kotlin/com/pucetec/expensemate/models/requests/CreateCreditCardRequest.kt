@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies
 data class CreateCreditCardRequest(
     val name: String,
     val lastFourDigits: String,
-    val courtDate: String,
-    val maximumPaymentDate: String,
+    val courtDate: Int,
+    val maximumPaymentDate: Int,
     val userId: Long
 ){
     fun toEntity(user: com.pucetec.expensemate.models.entities.User): CreditCard {

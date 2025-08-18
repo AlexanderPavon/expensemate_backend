@@ -1,10 +1,6 @@
 package com.pucetec.expensemate.models.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.Table
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "credit_cards")
@@ -15,12 +11,12 @@ data class CreditCard(
     var lastFourDigits: String,
 
     @Column(name = "court_date")
-    var courtDate: String,
+    var courtDate: Int,
 
     @Column(name = "maximum_payment_date")
-    var maximumPaymentDate: String,
+    var maximumPaymentDate: Int,
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     val user: User
-): BaseEntity()
+) : BaseEntity()

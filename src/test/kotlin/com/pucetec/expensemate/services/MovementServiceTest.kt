@@ -422,7 +422,7 @@ class MovementServiceTest {
     fun should_update_movement_successfully_with_card_and_account() {
         val user = User(name = "Alexander Pavón", email = "afpavon@puce.edu.ec")
         val category = Category(name = "Salud")
-        val creditCard = CreditCard("Visa", "1234", "2025-01-01", "2025-01-20", user)
+        val creditCard = CreditCard("Visa", "1234", 15, 30, user)
         val account = Account("Pichincha", "1111222233", balance = 1300.0, user = user)
 
         val existingMovement = mock(Movement::class.java)
@@ -445,7 +445,7 @@ class MovementServiceTest {
             date = now,
             note = "Actualizado",
             category = CategoryResponse(2L, "Salud"),
-            creditCard = CreditCardSummaryResponse(3L, "Visa", "1234", "2025-01-01", "2025-01-20"),
+            creditCard = CreditCardSummaryResponse(3L, "Visa", "1234", 15, 30),
             account = AccountSummaryResponse(4L, "Pichincha", "1111222233", balance = 1300.0),
             user = UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", totalBalance = 5200.0)
         )

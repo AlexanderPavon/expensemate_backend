@@ -51,8 +51,8 @@ class CreditCardControllerTest {
         val request = CreateCreditCardRequest(
             name = "Visa",
             lastFourDigits = "1234",
-            courtDate = "15",
-            maximumPaymentDate = "30",
+            courtDate = 15,
+            maximumPaymentDate = 30,
             userId = 1L
         )
 
@@ -88,11 +88,11 @@ class CreditCardControllerTest {
     fun should_return_all_cards_when_get_all() {
         val cards = listOf(
             CreditCardResponse(
-                1L, "Visa", "1234", "15", "30",
+                1L, "Visa", "1234", 15, 30,
                 UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
             ),
             CreditCardResponse(
-                2L, "MasterCard", "5678", "15", "30",
+                2L, "MasterCard", "5678", 15, 30,
                 UserSummaryResponse(2L, "Elizabeth Grant", "lanadelrey@puce.edu.ec", 6000.0)
             )
         )
@@ -115,7 +115,7 @@ class CreditCardControllerTest {
     @Test
     fun should_return_card_when_get_by_id() {
         val response = CreditCardResponse(
-            1L, "Visa", "1234", "15", "30",
+            1L, "Visa", "1234", 15, 30,
             UserSummaryResponse(1L, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
         )
 
@@ -151,11 +151,11 @@ class CreditCardControllerTest {
         val userId = 1L
         val cards = listOf(
             CreditCardResponse(
-                10L, "Visa", "1111", "10", "25",
+                10L, "Visa", "1111", 10, 25,
                 UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
             ),
             CreditCardResponse(
-                11L, "MasterCard", "2222", "12", "27",
+                11L, "MasterCard", "2222", 12, 27,
                 UserSummaryResponse(userId, "Alexander Pavón", "afpavon@puce.edu.ec", 5000.0)
             )
         )
@@ -194,8 +194,8 @@ class CreditCardControllerTest {
         val request = CreateCreditCardRequest(
             name = "MasterCard",
             lastFourDigits = "5678",
-            courtDate = "15",
-            maximumPaymentDate = "30",
+            courtDate = 15,
+            maximumPaymentDate = 30,
             userId = 1L
         )
 
@@ -228,8 +228,8 @@ class CreditCardControllerTest {
         val request = CreateCreditCardRequest(
             name = "MasterCard",
             lastFourDigits = "5678",
-            courtDate = "15",
-            maximumPaymentDate = "30",
+            courtDate = 15,
+            maximumPaymentDate = 30,
             userId = 1L
         )
 
