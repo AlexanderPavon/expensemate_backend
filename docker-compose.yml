@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -9,9 +9,48 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "6963:5432"
+      - "6963:5432"   # acceso desde host
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d expensemate_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  expensemate-backend:
+    build: .
+    container_name: expensemate_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      # DB (en Docker el host es el nombre del servicio: "postgres")
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/expensemate_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      # JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      # Puerto app
+      SERVER_PORT: 8080
+    restart: on-failure
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: expensemate_pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@expensemate.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:

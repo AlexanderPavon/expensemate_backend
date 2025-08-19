@@ -1,0 +1,28 @@
+# Salidas de compilación
+build/
+.gradle/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Docs (opcional)
+README.md
+*.md
+
+# Otros
+test-output/
